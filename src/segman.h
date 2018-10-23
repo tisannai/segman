@@ -11,7 +11,7 @@
  *
  */
 
-#include <sixten_env.h>
+#include <sixten.h>
 
 #ifndef SM_MIN_SLOT_CNT
 #define SM_MIN_SLOT_CNT 4

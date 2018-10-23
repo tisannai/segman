@@ -7,8 +7,8 @@
  *
  */
 
+#include <sixten_ass.h>
 #include "segman.h"
-
 
 /* Internal functions: */
 static st_none sm_prepare( sm_t sm );

@@ -2,3 +2,10 @@ build
 vendor
 test/support/*
 doc
+build
+project.yml
+rakefile.rb
+vendor
+test/support/*
+.doxygen
+doc
