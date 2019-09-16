@@ -18,15 +18,15 @@
 #endif
 
 
-st_struct( sm );
-st_struct( sm_tail );
+st_struct_type( sm );
+st_struct_type( sm_tail );
 
 
 typedef void ( *sm_hook_fn )( sm_t sm, st_t slot );
 
 
 /** Segman Tail structure. */
-st_struct( sm_tail )
+st_struct_body( sm_tail )
 {
     st_t      base;     /**< Base slot (first). */
     st_size_t tail_cnt; /**< Number of slots in last segment. */
@@ -35,7 +35,7 @@ st_struct( sm_tail )
 };
 
 /** Segman Host structure. */
-st_struct( sm )
+st_struct_body( sm )
 {
     st_size_t slot_cnt;  /**< Number of valid (usable) slots in pool. */
     st_size_t slot_size; /**< Size of each slot. */

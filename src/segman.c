@@ -280,7 +280,7 @@ static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt )
     sm_tail_t new_seg;
 
     new_seg = sm_alloc( sm, sizeof( sm_tail_s ) + slot_cnt * sm->slot_size );
-    new_seg->base = new_seg + sizeof( sm_tail_s );
+    new_seg->base = (st_t)new_seg + sizeof( sm_tail_s );
     new_seg->tail_cnt = slot_cnt;
     new_seg->init_cnt = 0;
     new_seg->next = NULL;
@@ -353,7 +353,7 @@ static st_none sm_init_host( sm_t         sm,
     sm->used_cnt = 0;
     sm->free_cnt = slot_cnt;
 
-    sm->head = sm + sizeof( sm_s );
+    sm->head = (st_t)sm + sizeof( sm_s );
     sm->tail = &( sm->host );
 
     sm->resize = 100;
@@ -387,5 +387,5 @@ static st_size_t sm_host_extra( st_size_t slot_size )
     st_size_t host_extra;
 
     host_extra = sm_host_size() - sm_tail_size();
-    return host_extra / slot_size + ( host_extra % slot_size != 0 );
+    return host_extra / slot_size + ( ( host_extra % slot_size == 0 ) ? 0 : 1 );
 }
