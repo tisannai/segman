@@ -47,16 +47,20 @@ st_none sm_new_use( st_t         mem,
                     st_mem_cb_fn free_fn,
                     st_t         mem_env )
 {
-    st_assert_q( slot_size >= sizeof( st_t ) );
-    st_assert_q( slot_cnt >= SM_MIN_SLOT_CNT );
+//     st_assert_q( slot_size >= sizeof( st_t ) );
+//     st_assert_q( slot_cnt >= SM_MIN_SLOT_CNT );
+    assert( slot_size >= sizeof( st_t ) );
+    assert( slot_cnt >= SM_MIN_SLOT_CNT );
     sm_init_host( (sm_t)mem, slot_cnt, slot_size, alloc_fn, free_fn, mem_env );
 }
 
 
 st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
 {
-    st_assert_q( slot_size >= sizeof( st_t ) );
-    st_assert_q( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
+//     st_assert_q( slot_size >= sizeof( st_t ) );
+//     st_assert_q( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
+    assert( slot_size >= sizeof( st_t ) );
+    assert( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
 
     st_size_t slot_cnt;
     st_size_t slot_mem;
@@ -67,6 +71,21 @@ st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
     sm_init_host( (sm_t)mem, slot_cnt, slot_size, NULL, NULL, NULL );
 
     return slot_cnt;
+}
+
+
+sm_t sm_reset( sm_t sm )
+{
+    st_size_t slot_cnt;
+    st_size_t slot_size;
+
+    slot_cnt = sm->slot_cnt;
+    slot_size = sm->slot_size;
+
+    st_memclr( sm, sizeof( sm_s ) + slot_cnt * slot_size );
+    sm_new_use( sm, slot_cnt, slot_size, NULL, NULL, NULL );
+
+    return sm;
 }
 
 

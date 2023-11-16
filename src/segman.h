@@ -103,6 +103,16 @@ st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size );
 
 
 /**
+ * Free all slots, but leave Segman allocations.
+ *
+ * @param sm Segman.
+ *
+ * @return NULL.
+ */
+sm_t sm_reset( sm_t sm );
+
+
+/**
  * Destroy memory Segman.
  *
  * @param sm Segman.

@@ -61,6 +61,7 @@
   :test:
     :compile:
       :*:
+        - -g
         - -Wall
         - -Wextra
         - -Wstrict-prototypes
@@ -105,10 +106,11 @@
   :release_compiler:
     :executable: gcc
     :arguments:
+      - -DNDEBUG
       - ${1}
       - -Wall
-#      - -std=c11
-#      - -g
+#       - -std=c11
+#       - -g
       - -O2
       - -fPIC
       - -c
