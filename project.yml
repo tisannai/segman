@@ -61,9 +61,10 @@
   :test:
     :compile:
       :*:
+#         - -Wall
+#         - -Wextra
+        - -O0
         - -g
-        - -Wall
-        - -Wextra
         - -Wstrict-prototypes
         - -Werror
         - -fdata-sections
@@ -77,8 +78,10 @@
   :gcov:
     :compile:
       :*:
-        - -Wall
-        - -Wextra
+#         - -Wall
+#         - -Wextra
+        - -O0
+        - -g
         - -Wstrict-prototypes
         - -Werror
         - -fdata-sections
@@ -101,7 +104,7 @@
       - -fprofile-arcs
       - -ftest-coverage
       - ${1}
-            - -lm -lsixten
+      - -lm -lsixten
       - -o ${2}
   :release_compiler:
     :executable: gcc
@@ -124,6 +127,8 @@
       - -o ${2}
 
 :gcov:
+  :utilities:
+     - gcovr
   :reports:
     - HtmlDetailed
   :gcovr:

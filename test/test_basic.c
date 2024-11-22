@@ -15,6 +15,10 @@ typedef struct
 typedef my_slot_t* my_slot_p;
 
 
+void dbg_break( void )
+{
+}
+
 
 my_slot_p nth( sm_t sm, int n )
 {
@@ -64,6 +68,8 @@ void test_basic( void )
     sm_t      sm;
     my_slot_p ptr[ SLOT_CNT ];
     st_size_t slot_size = sizeof( my_slot_t );
+
+    dbg_break();
 
     sm = sm_new( SLOT_CNT, slot_size );
 
@@ -137,6 +143,12 @@ void test_basic( void )
     TEST_ASSERT_EQUAL( 2*SLOT_CNT+1, get_cnt );
     TEST_ASSERT_EQUAL( 2*SLOT_CNT, put_cnt );
 
+    TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+    slot = sm_get( sm );
+    TEST_ASSERT( sm_used_cnt( sm ) == 1 );
+    sm_reset( sm );
+    TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+
     sm_del( sm );
 }
 
@@ -154,10 +166,6 @@ st_t mem_free( st_t obj, st_t env, st_t arg )
     st_del( arg );
     TEST_ASSERT( ((sm_t)obj) == env );
     return NULL;
-}
-
-void gdb_break( void )
-{
 }
 
 
