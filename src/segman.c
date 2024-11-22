@@ -13,8 +13,6 @@
 /* Internal functions: */
 static st_none sm_prepare( sm_t sm );
 static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt );
-// static st_t    sm_alloc( sm_t sm, st_size_t size );
-// static st_none sm_free( sm_t sm, st_t item );
 static st_none   sm_init_host( sm_t sm, st_size_t slot_cnt, st_size_t slot_size );
 static st_size_t sm_host_extra( st_size_t slot_size );
 
@@ -56,7 +54,6 @@ st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
     slot_mem = mem_size - sm_host_size();
     slot_cnt = slot_mem / slot_size - ( slot_mem % slot_size != 0 );
 
-    //     sm_init_host( (sm_t)mem, slot_cnt, slot_size, NULL, NULL, NULL );
     sm_init_host( (sm_t)mem, slot_cnt, slot_size );
 
     return slot_cnt;
@@ -87,12 +84,10 @@ sm_t sm_del( sm_t sm )
 
     while ( cur ) {
         next = cur->next;
-        // sm_free( sm, cur );
         st_del( cur );
         cur = next;
     }
 
-    // sm_free( sm, sm );
     st_del( sm );
 
     return NULL;
@@ -281,7 +276,6 @@ static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt )
 {
     sm_tail_t new_seg;
 
-    //     new_seg = sm_alloc( sm, sizeof( sm_tail_s ) + slot_cnt * sm->slot_size );
     new_seg = st_alloc( sizeof( sm_tail_s ) + slot_cnt * sm->slot_size );
     new_seg->base = (st_t)new_seg + sizeof( sm_tail_s );
     new_seg->tail_cnt = slot_cnt;
@@ -294,44 +288,6 @@ static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt )
     sm->tail = new_seg;
     sm->free_cnt += slot_cnt;
 }
-
-
-#if 0
-/**
- * Use active allocation function to allocate size of bytes.
- *
- * @param sm   Segman.
- * @param size Allocation size.
- *
- * @return Allocation.
- */
-static st_t sm_alloc( sm_t sm, st_size_t size )
-{
-    if ( sm->alloc_fn ) {
-        return sm->alloc_fn( sm, sm->mem_env, (st_t)size );
-    } else {
-        return st_alloc( size );
-    }
-}
-
-
-/**
- * Use active de-allocation function to de-allocate item.
- *
- * @param sm   Segman.
- * @param item Item to free.
- *
- * @return NA
- */
-static st_none sm_free( sm_t sm, st_t item )
-{
-    if ( sm->free_fn ) {
-        sm->free_fn( sm, sm->mem_env, item );
-    } else {
-        st_del( item );
-    }
-}
-#endif
 
 
 /**
@@ -357,10 +313,6 @@ static st_none sm_init_host( sm_t sm, st_size_t slot_cnt, st_size_t slot_size )
     sm->tail = &( sm->host );
 
     sm->resize = 100;
-
-//     sm->alloc_fn = alloc_fn;
-//     sm->free_fn = free_fn;
-//     sm->mem_env = mem_env;
 
     sm->tail->base = sm->head;
     sm->tail->tail_cnt = slot_cnt;
