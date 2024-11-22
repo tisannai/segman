@@ -75,7 +75,8 @@ NOTE: the minimum size of Slot is thus a pointer (i.e. 64-bits).
 
 In the above figure, we have 6 Slots. `head` is pointing to `S5`, and
 `S5` is pointing to `S0`. `S0` is pointing to `S2`, which is now the
-last free Slot. Slots 1, 3, and 4 are reserved.
+last free Slot. Slots 1, 3, and 4 are reserved. `S2` does not have to
+point to anything, since used and free slots are counted separately.
 
 If `S3` is released, `head` would then point to `S3`, and `S3` would
 be initialized with link to (previous head) `S5`. If Slot is reserved,

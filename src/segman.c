@@ -11,9 +11,9 @@
 #include "segman.h"
 
 /* Internal functions: */
-static st_none   sm_prepare( sm_t sm );
+static st_none   sm_prepare_slot( sm_t sm );
 static st_none   sm_new_seg( sm_t sm, st_size_t slot_cnt );
-static st_none   sm_init_host( sm_t sm, st_size_t slot_cnt, st_size_t slot_size );
+static st_none   sm_init_host( sm_t sm, st_t mem, st_size_t slot_cnt, st_size_t slot_size );
 static st_size_t sm_host_extra( st_size_t slot_size );
 
 
@@ -25,36 +25,41 @@ static st_size_t sm_host_extra( st_size_t slot_size );
 sm_t sm_new( st_size_t slot_cnt, st_size_t slot_size )
 {
     sm_t sm;
+    st_t mem;
 
     sm = st_alloc( sizeof( sm_s ) + slot_cnt * slot_size );
-    sm_use( sm, slot_cnt, slot_size );
+    mem = sm + sizeof( sm_s );
+    sm_use( sm, mem, slot_cnt, slot_size );
 
     return sm;
 }
 
 
-st_none sm_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size )
+st_none sm_use( sm_t sm, st_t mem, st_size_t slot_cnt, st_size_t slot_size )
 {
     assert( slot_size >= sizeof( st_t ) );
     assert( slot_cnt >= SM_MIN_SLOT_CNT );
-    sm_init_host( (sm_t)mem, slot_cnt, slot_size );
+    sm_init_host( sm, mem, slot_cnt, slot_size );
 }
 
 
-st_size_t sm_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
+st_size_t sm_fill( sm_t sm, st_t mem, st_size_t mem_size, st_size_t slot_size )
 {
     //     st_assert_q( slot_size >= sizeof( st_t ) );
     //     st_assert_q( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
     assert( slot_size >= sizeof( st_t ) );
-    assert( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
+    // assert( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
+    assert( mem_size >= SM_MIN_SLOT_CNT * slot_size );
 
     st_size_t slot_cnt;
     st_size_t slot_mem;
 
-    slot_mem = mem_size - sm_host_size();
-    slot_cnt = slot_mem / slot_size - ( slot_mem % slot_size != 0 );
+    // slot_mem = mem_size - sm_host_size();
+    slot_mem = mem_size;
+    // slot_cnt = slot_mem / slot_size - ( slot_mem % slot_size != 0 );
+    slot_cnt = slot_mem / slot_size - ( ( slot_mem % slot_size == 0 ) ? 0 : 1 );
 
-    sm_init_host( (sm_t)mem, slot_cnt, slot_size );
+    sm_init_host( sm, mem, slot_cnt, slot_size );
 
     return slot_cnt;
 }
@@ -68,8 +73,8 @@ sm_t sm_reset( sm_t sm )
     slot_cnt = sm->slot_cnt;
     slot_size = sm->slot_size;
 
-    st_memclr( sm, sizeof( sm_s ) + slot_cnt * slot_size );
-    sm_use( sm, slot_cnt, slot_size );
+//     st_memclr( sm, sizeof( sm_s ) + slot_cnt * slot_size );
+//     sm_use( sm, slot_cnt, slot_size );
 
     return sm;
 }
@@ -157,8 +162,9 @@ st_t sm_get( sm_t sm )
 
 retry:
 
-    if ( sm->tail->init_cnt < sm->tail->tail_cnt )
-        sm_prepare( sm );
+    if ( sm->tail->init_cnt < sm->tail->tail_cnt ) {
+        sm_prepare_slot( sm );
+    }
 
     st_t ret = NULL;
 
@@ -198,8 +204,10 @@ sm_t sm_put( sm_t sm, st_t slot )
         sm->put_cb( sm, slot );
 #endif
 
-    if ( sm->free_cnt >= sm_total_cnt( sm ) )
+    // if ( sm->free_cnt >= sm_total_cnt( sm ) ) {
+    if ( sm->used_cnt == 0 ) {
         return NULL;
+    }
 
     if ( sm->head != NULL ) {
 
@@ -252,7 +260,7 @@ void sm_set_put_cb( sm_t sm, sm_hook_fn cb )
  *
  * @return NA
  */
-static st_none sm_prepare( sm_t sm )
+static st_none sm_prepare_slot( sm_t sm )
 {
     /* Make sure that each slot has a link before it is allocated. */
     st_t slot;
@@ -302,14 +310,16 @@ static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt )
  *
  * @return NA
  */
-static st_none sm_init_host( sm_t sm, st_size_t slot_cnt, st_size_t slot_size )
+static st_none sm_init_host( sm_t sm, st_t mem, st_size_t slot_cnt, st_size_t slot_size )
 {
-    sm->slot_cnt = slot_cnt + sm_host_extra( slot_size );
+    // sm->slot_cnt = slot_cnt + sm_host_extra( slot_size );
+    sm->slot_cnt = slot_cnt;
     sm->slot_size = slot_size;
     sm->used_cnt = 0;
     sm->free_cnt = slot_cnt;
 
-    sm->head = (st_t)sm + sizeof( sm_s );
+    //     sm->head = (st_t)sm + sizeof( sm_s );
+    sm->head = mem;
     sm->tail = &( sm->host );
 
     sm->resize = 100;
