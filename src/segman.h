@@ -48,10 +48,6 @@ st_struct_body( sm )
 
     st_size_t resize; /**< Resize factor percentage. */
 
-    st_mem_cb_fn alloc_fn; /**< Allocation function. */
-    st_mem_cb_fn free_fn;  /**< Free function. */
-    st_t         mem_env;  /**< Memory env. */
-
 #ifdef SEGMAN_USE_HOOKS
     sm_hook_fn get_cb; /**< Callback for get. */
     sm_hook_fn put_cb; /**< Callback for put. */
@@ -76,18 +72,10 @@ sm_t sm_new( st_size_t slot_cnt, st_size_t slot_size );
  * @param mem       Memory.
  * @param slot_cnt  Slot count.
  * @param slot_size Slot size.
- * @param alloc_fn  Allocation function (if any).
- * @param free_fn   Free function (if any).
- * @param mem_env   Memory env (if any).
  *
  * @return NA
  */
-st_none sm_new_use( st_t         mem,
-                    st_size_t    slot_cnt,
-                    st_size_t    slot_size,
-                    st_mem_cb_fn alloc_fn,
-                    st_mem_cb_fn free_fn,
-                    st_t         mem_env );
+st_none sm_new_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size );
 
 
 /**
@@ -120,19 +108,6 @@ sm_t sm_reset( sm_t sm );
  * @return NULL.
  */
 sm_t sm_del( sm_t sm );
-
-
-/**
- * Set memory management environment.
- *
- * @param sm       Segman.
- * @param alloc_fn Allocation function.
- * @param free_fn  De-allocation function.
- * @param mem_env  Allocator env.
- *
- * @return NA
- */
-st_none sm_set_memory_env( sm_t sm, st_mem_cb_fn alloc_fn, st_mem_cb_fn free_fn, st_t mem_env );
 
 
 /**

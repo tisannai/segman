@@ -13,14 +13,9 @@
 /* Internal functions: */
 static st_none sm_prepare( sm_t sm );
 static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt );
-static st_t sm_alloc( sm_t sm, st_size_t size );
-static st_none sm_free( sm_t sm, st_t item );
-static st_none sm_init_host( sm_t         sm,
-                             st_size_t    slot_cnt,
-                             st_size_t    slot_size,
-                             st_mem_cb_fn alloc_fn,
-                             st_mem_cb_fn free_fn,
-                             st_t         mem_env );
+// static st_t    sm_alloc( sm_t sm, st_size_t size );
+// static st_none sm_free( sm_t sm, st_t item );
+static st_none   sm_init_host( sm_t sm, st_size_t slot_cnt, st_size_t slot_size );
 static st_size_t sm_host_extra( st_size_t slot_size );
 
 
@@ -34,31 +29,24 @@ sm_t sm_new( st_size_t slot_cnt, st_size_t slot_size )
     sm_t sm;
 
     sm = st_alloc( sizeof( sm_s ) + slot_cnt * slot_size );
-    sm_new_use( sm, slot_cnt, slot_size, NULL, NULL, NULL );
+    sm_new_use( sm, slot_cnt, slot_size );
 
     return sm;
 }
 
 
-st_none sm_new_use( st_t         mem,
-                    st_size_t    slot_cnt,
-                    st_size_t    slot_size,
-                    st_mem_cb_fn alloc_fn,
-                    st_mem_cb_fn free_fn,
-                    st_t         mem_env )
+st_none sm_new_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size )
 {
-//     st_assert_q( slot_size >= sizeof( st_t ) );
-//     st_assert_q( slot_cnt >= SM_MIN_SLOT_CNT );
     assert( slot_size >= sizeof( st_t ) );
     assert( slot_cnt >= SM_MIN_SLOT_CNT );
-    sm_init_host( (sm_t)mem, slot_cnt, slot_size, alloc_fn, free_fn, mem_env );
+    sm_init_host( (sm_t)mem, slot_cnt, slot_size );
 }
 
 
 st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
 {
-//     st_assert_q( slot_size >= sizeof( st_t ) );
-//     st_assert_q( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
+    //     st_assert_q( slot_size >= sizeof( st_t ) );
+    //     st_assert_q( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
     assert( slot_size >= sizeof( st_t ) );
     assert( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
 
@@ -68,7 +56,8 @@ st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
     slot_mem = mem_size - sm_host_size();
     slot_cnt = slot_mem / slot_size - ( slot_mem % slot_size != 0 );
 
-    sm_init_host( (sm_t)mem, slot_cnt, slot_size, NULL, NULL, NULL );
+    //     sm_init_host( (sm_t)mem, slot_cnt, slot_size, NULL, NULL, NULL );
+    sm_init_host( (sm_t)mem, slot_cnt, slot_size );
 
     return slot_cnt;
 }
@@ -83,7 +72,7 @@ sm_t sm_reset( sm_t sm )
     slot_size = sm->slot_size;
 
     st_memclr( sm, sizeof( sm_s ) + slot_cnt * slot_size );
-    sm_new_use( sm, slot_cnt, slot_size, NULL, NULL, NULL );
+    sm_new_use( sm, slot_cnt, slot_size );
 
     return sm;
 }
@@ -98,21 +87,15 @@ sm_t sm_del( sm_t sm )
 
     while ( cur ) {
         next = cur->next;
-        sm_free( sm, cur );
+        // sm_free( sm, cur );
+        st_del( cur );
         cur = next;
     }
-        
-    sm_free( sm, sm );
+
+    // sm_free( sm, sm );
+    st_del( sm );
 
     return NULL;
-}
-
-
-st_none sm_set_memory_env( sm_t sm, st_mem_cb_fn alloc_fn, st_mem_cb_fn free_fn, st_t mem_env )
-{
-    sm->alloc_fn = alloc_fn;
-    sm->free_fn = free_fn;
-    sm->mem_env = mem_env;
 }
 
 
@@ -298,7 +281,8 @@ static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt )
 {
     sm_tail_t new_seg;
 
-    new_seg = sm_alloc( sm, sizeof( sm_tail_s ) + slot_cnt * sm->slot_size );
+    //     new_seg = sm_alloc( sm, sizeof( sm_tail_s ) + slot_cnt * sm->slot_size );
+    new_seg = st_alloc( sizeof( sm_tail_s ) + slot_cnt * sm->slot_size );
     new_seg->base = (st_t)new_seg + sizeof( sm_tail_s );
     new_seg->tail_cnt = slot_cnt;
     new_seg->init_cnt = 0;
@@ -312,6 +296,7 @@ static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt )
 }
 
 
+#if 0
 /**
  * Use active allocation function to allocate size of bytes.
  *
@@ -346,6 +331,7 @@ static st_none sm_free( sm_t sm, st_t item )
         st_del( item );
     }
 }
+#endif
 
 
 /**
@@ -360,12 +346,7 @@ static st_none sm_free( sm_t sm, st_t item )
  *
  * @return NA
  */
-static st_none sm_init_host( sm_t         sm,
-                             st_size_t    slot_cnt,
-                             st_size_t    slot_size,
-                             st_mem_cb_fn alloc_fn,
-                             st_mem_cb_fn free_fn,
-                             st_t         mem_env )
+static st_none sm_init_host( sm_t sm, st_size_t slot_cnt, st_size_t slot_size )
 {
     sm->slot_cnt = slot_cnt + sm_host_extra( slot_size );
     sm->slot_size = slot_size;
@@ -377,9 +358,9 @@ static st_none sm_init_host( sm_t         sm,
 
     sm->resize = 100;
 
-    sm->alloc_fn = alloc_fn;
-    sm->free_fn = free_fn;
-    sm->mem_env = mem_env;
+//     sm->alloc_fn = alloc_fn;
+//     sm->free_fn = free_fn;
+//     sm->mem_env = mem_env;
 
     sm->tail->base = sm->head;
     sm->tail->tail_cnt = slot_cnt;
