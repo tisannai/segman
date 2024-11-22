@@ -37,10 +37,11 @@ st_struct_body( sm_tail )
 /** Segman Host structure. */
 st_struct_body( sm )
 {
-    st_size_t slot_cnt;  /**< Number of valid (usable) slots in pool. */
-    st_size_t slot_size; /**< Size of each slot. */
-    st_size_t used_cnt;  /**< Number of used slots. */
-    st_size_t free_cnt;  /**< Number of available slots. */
+    st_size_t slot_cnt;   /**< Number of valid (usable) slots in pool. */
+    st_size_t slot_size;  /**< Size of each slot. */
+//     st_size_t align_size; /**< Align size (or 0 for no alignment). */
+    st_size_t used_cnt;   /**< Number of used slots. */
+    st_size_t free_cnt;   /**< Number of available slots. */
 
     st_t      head; /**< Head slot. */
     sm_tail_t tail; /**< Tail segment. */
@@ -75,11 +76,12 @@ sm_t sm_new( st_size_t slot_cnt, st_size_t slot_size );
  *
  * @return NA
  */
-st_none sm_new_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size );
+st_none sm_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size );
 
 
 /**
- * Create Segman and fill pre-allocated memory.
+ * Create Segman in pre-allocated memory and fill pre-allocated
+ * memory with maximum number of slots.
  *
  * @param mem       Segman memory.
  * @param mem_size  Memory size.
@@ -87,7 +89,7 @@ st_none sm_new_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size );
  *
  * @return Slot count.
  */
-st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size );
+st_size_t sm_fill( st_t mem, st_size_t mem_size, st_size_t slot_size );
 
 
 /**

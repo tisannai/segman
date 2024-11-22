@@ -11,8 +11,8 @@
 #include "segman.h"
 
 /* Internal functions: */
-static st_none sm_prepare( sm_t sm );
-static st_none sm_new_seg( sm_t sm, st_size_t slot_cnt );
+static st_none   sm_prepare( sm_t sm );
+static st_none   sm_new_seg( sm_t sm, st_size_t slot_cnt );
 static st_none   sm_init_host( sm_t sm, st_size_t slot_cnt, st_size_t slot_size );
 static st_size_t sm_host_extra( st_size_t slot_size );
 
@@ -27,13 +27,13 @@ sm_t sm_new( st_size_t slot_cnt, st_size_t slot_size )
     sm_t sm;
 
     sm = st_alloc( sizeof( sm_s ) + slot_cnt * slot_size );
-    sm_new_use( sm, slot_cnt, slot_size );
+    sm_use( sm, slot_cnt, slot_size );
 
     return sm;
 }
 
 
-st_none sm_new_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size )
+st_none sm_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size )
 {
     assert( slot_size >= sizeof( st_t ) );
     assert( slot_cnt >= SM_MIN_SLOT_CNT );
@@ -41,7 +41,7 @@ st_none sm_new_use( st_t mem, st_size_t slot_cnt, st_size_t slot_size )
 }
 
 
-st_size_t sm_new_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
+st_size_t sm_fill( st_t mem, st_size_t mem_size, st_size_t slot_size )
 {
     //     st_assert_q( slot_size >= sizeof( st_t ) );
     //     st_assert_q( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
@@ -69,7 +69,7 @@ sm_t sm_reset( sm_t sm )
     slot_size = sm->slot_size;
 
     st_memclr( sm, sizeof( sm_s ) + slot_cnt * slot_size );
-    sm_new_use( sm, slot_cnt, slot_size );
+    sm_use( sm, slot_cnt, slot_size );
 
     return sm;
 }

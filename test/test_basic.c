@@ -166,7 +166,7 @@ void test_random( void )
     mem_size = sm_host_size() + SLOT_CNT * sizeof( my_slot_t );
     sm = st_alloc( mem_size );
 
-    sm_new_fill( (st_t)sm, mem_size, sizeof( my_slot_t ) );
+    sm_fill( (st_t)sm, mem_size, sizeof( my_slot_t ) );
     sm_set_resize_factor( sm, 0 );
     
 
