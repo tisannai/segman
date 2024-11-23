@@ -107,18 +107,29 @@ sm_t sm_reset( sm_t sm )
 
     sm->host.init_cnt = 0;
 
-    st_size_t total;
-    total = sm->used_cnt + sm->free_cnt;
     sm->used_cnt = 0;
-    sm->free_cnt = total;
+    /*
+      Give free_cnt as free in Head, since the tail is going to be
+      used gradually.
+     */
+    sm->free_cnt = sm->slot_cnt;
 
     sm->tail = &sm->host;
+    sm->head = sm->tail->base;
 
     return sm;
 }
 
 
 sm_t sm_del( sm_t sm )
+{
+    sm_del_tail( sm );
+    st_del( sm->host.base );
+    return NULL;
+}
+
+
+sm_t sm_del_tail( sm_t sm )
 {
     sm_tail_t cur;
     sm_tail_t next;
@@ -131,7 +142,7 @@ sm_t sm_del( sm_t sm )
         cur = next;
     }
 
-    st_del( sm->host.base );
+    sm->host.next = NULL;
 
     return NULL;
 }
@@ -196,8 +207,9 @@ st_t sm_get( sm_t sm )
 {
 
 #ifdef SEGMAN_USE_HOOKS
-    if ( sm->get_cb )
+    if ( sm->get_cb ) {
         sm->get_cb( sm, NULL );
+    }
 #endif
 
 retry:
@@ -230,6 +242,8 @@ retry:
 
         /* Pre-existing Tail Segment (left from sm_reset). */
         sm->tail = sm->tail->next;
+        sm->head = sm->tail->base;
+        sm->free_cnt += sm->tail->tail_cnt;
         goto retry;
 
     } else if ( sm->resize != 0 ) {
@@ -246,11 +260,11 @@ sm_t sm_put( sm_t sm, st_t slot )
 {
 
 #ifdef SEGMAN_USE_HOOKS
-    if ( sm->put_cb )
+    if ( sm->put_cb ) {
         sm->put_cb( sm, slot );
+    }
 #endif
 
-    // if ( sm->free_cnt >= sm_total_cnt( sm ) ) {
     if ( sm->used_cnt == 0 ) {
         return NULL;
     }

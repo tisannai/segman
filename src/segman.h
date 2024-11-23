@@ -124,6 +124,16 @@ sm_t sm_del( sm_t sm );
 
 
 /**
+ * Destroy memory Segman tail.
+ *
+ * @param sm Segman.
+ *
+ * @return NULL.
+ */
+sm_t sm_del_tail( sm_t sm );
+
+
+/**
  * Set Segman resize factor percentage. 0 (the default) means no
  * automatic resizing at out-of-mem condition. Typically factor of
  * 200% is used.
