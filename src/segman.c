@@ -11,7 +11,8 @@
 #include "segman.h"
 
 
-st_struct( sm_info ) {
+st_struct( sm_info )
+{
     st_size_t header_size;
     st_size_t slot_area;
 };
@@ -19,21 +20,15 @@ st_struct( sm_info ) {
 
 /* Internal functions: */
 static st_size_t sm_size_in_units( st_size_t block_size, st_size_t unit_size );
-static sm_info_s  sm_host_info( st_size_t slot_cnt,
+static sm_info_s sm_host_info( st_size_t slot_cnt, st_size_t block_size, st_size_t slot_size );
+static sm_info_s sm_tail_info( st_size_t slot_cnt, st_size_t block_size, st_size_t slot_size );
+static st_none   sm_prepare_slot( sm_t sm );
+static st_none   sm_new_seg( sm_t sm );
+static st_none   sm_init_host( sm_t      sm,
+                               st_t      slot_mem,
+                               st_size_t slot_cnt,
                                st_size_t block_size,
                                st_size_t slot_size );
-static sm_info_s   sm_tail_info( st_size_t slot_cnt,
-                               st_size_t block_size,
-                                st_size_t slot_size );
-static st_none   sm_prepare_slot( sm_t sm );
-// static st_none   sm_new_seg( sm_t sm, st_size_t slot_cnt );
-static st_none sm_new_seg( sm_t sm );
-static st_none sm_init_host( sm_t      sm,
-                             st_t      slot_mem,
-                             st_size_t slot_cnt,
-                             st_size_t block_size,
-                             st_size_t slot_size );
-// static st_t    sm_host_head( sm_t sm );
 
 
 
@@ -79,7 +74,8 @@ st_none sm_use( sm_t sm, st_t mem, st_size_t slot_cnt, size_t slot_size )
 
 sm_t sm_use_block( st_t mem, st_size_t block_size, size_t slot_size )
 {
-    st_t sm;
+    st_t      sm;
+    st_size_t slot_cnt;
 
     assert( slot_size >= sizeof( st_t ) );
     //     assert( slot_cnt >= SM_MIN_SLOT_CNT );
@@ -87,35 +83,14 @@ sm_t sm_use_block( st_t mem, st_size_t block_size, size_t slot_size )
     sm_info_s info;
     info = sm_host_info( 0, block_size, slot_size );
 
+    slot_cnt = ( info.slot_area / slot_size );
+    assert( slot_cnt >= SM_MIN_SLOT_CNT );
+
     sm = mem + info.slot_area;
-    sm_init_host( sm, mem, ( info.slot_area / slot_size ), block_size, slot_size );
+    sm_init_host( sm, mem, slot_cnt, block_size, slot_size );
 
     return sm;
 }
-
-
-#if 0
-st_size_t sm_fill( sm_t sm, st_t mem, st_size_t mem_size, st_size_t slot_size )
-{
-    //     st_assert_q( slot_size >= sizeof( st_t ) );
-    //     st_assert_q( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
-    assert( slot_size >= sizeof( st_t ) );
-    // assert( mem_size >= sizeof( sm_s ) + SM_MIN_SLOT_CNT * slot_size );
-    assert( mem_size >= SM_MIN_SLOT_CNT * slot_size );
-
-    st_size_t slot_cnt;
-    st_size_t slot_mem;
-
-    // slot_mem = mem_size - sm_host_size();
-    slot_mem = mem_size;
-    // slot_cnt = slot_mem / slot_size - ( slot_mem % slot_size != 0 );
-    slot_cnt = slot_mem / slot_size - ( ( slot_mem % slot_size == 0 ) ? 0 : 1 );
-
-    sm_init_host( sm, mem, slot_cnt, 0, slot_size );
-
-    return slot_cnt;
-}
-#endif
 
 
 sm_t sm_reset( sm_t sm )
@@ -138,15 +113,6 @@ sm_t sm_reset( sm_t sm )
     sm->free_cnt = total;
 
     sm->tail = &sm->host;
-
-//     st_size_t slot_cnt;
-//     st_size_t slot_size;
-//
-//     slot_cnt = sm->slot_cnt;
-//     slot_size = sm->slot_size;
-//
-//     //     st_memclr( sm, sizeof( sm_s ) + slot_cnt * slot_size );
-//     //     sm_use( sm, slot_cnt, slot_size );
 
     return sm;
 }
@@ -182,24 +148,6 @@ st_size_t sm_set_resize_factor( sm_t sm, st_size_t factor )
 }
 
 
-#if 0
-st_size_t sm_head_slot_cnt( sm_t sm )
-{
-    return sm->slot_cnt;
-}
-
-
-st_size_t sm_tail_slot_cnt( sm_t sm )
-{
-    if ( sm->block_size == 0 ) {
-        return sm->slot_cnt;
-    } else {
-        return ( ( sm->block_size - sizeof( sm_tail_s ) ) / sm->slot_size );
-    }
-}
-#endif
-
-
 st_size_t sm_block_head_segment_size( st_size_t slot_cnt, st_size_t slot_size )
 {
     st_size_t header_slots;
@@ -208,24 +156,10 @@ st_size_t sm_block_head_segment_size( st_size_t slot_cnt, st_size_t slot_size )
 }
 
 
-// st_size_t sm_block_tail_segment_size( st_size_t slot_cnt, st_size_t slot_size )
-// {
-//     st_size_t header_slots;
-//     header_slots = sm_size_in_units( sizeof( sm_tail_s ), slot_size );
-//     return ( ( header_slots + slot_cnt ) * slot_size;
-// }
-
-
 st_size_t sm_slot_size( sm_t sm )
 {
     return sm->slot_size;
 }
-
-
-// st_size_t sm_slot_area_size( sm_t sm )
-// {
-//     return ( sm->slot_cnt * sm->slot_size );
-// }
 
 
 st_size_t sm_total_cnt( sm_t sm )
@@ -365,6 +299,14 @@ void sm_set_put_cb( sm_t sm, sm_hook_fn cb )
  * Internal functions:
  * ------------------------------------------------------------ */
 
+/**
+ * Return size of block in terms of the unit.
+ *
+ * @param block_size Block size;
+ * @param unit_size  Unit size.
+ *
+ * @return Block size in units.
+ */
 static st_size_t sm_size_in_units( st_size_t block_size, st_size_t unit_size )
 {
     st_size_t odd;
@@ -377,9 +319,16 @@ static st_size_t sm_size_in_units( st_size_t block_size, st_size_t unit_size )
 }
 
 
-static sm_info_s sm_host_info( st_size_t slot_cnt,
-                             st_size_t block_size,
-                            st_size_t slot_size )
+/**
+ * Return host segment info.
+ *
+ * @param slot_cnt   Slot count.
+ * @param block_size Block size;
+ * @param slot_size  Slot size.
+ *
+ * @return Segment info.
+ */
+static sm_info_s sm_host_info( st_size_t slot_cnt, st_size_t block_size, st_size_t slot_size )
 {
     sm_info_s info;
 
@@ -397,16 +346,22 @@ static sm_info_s sm_host_info( st_size_t slot_cnt,
         info.header_size = ( header_slots * slot_size );
         slot_cnt = ( block_size - info.header_size ) / slot_size;
         info.slot_area = slot_cnt * slot_size;
-
     }
 
     return info;
 }
 
 
-static sm_info_s sm_tail_info( st_size_t slot_cnt,
-                              st_size_t block_size,
-                              st_size_t slot_size )
+/**
+ * Return tail segment info.
+ *
+ * @param slot_cnt   Slot count.
+ * @param block_size Block size;
+ * @param slot_size  Slot size.
+ *
+ * @return Segment info.
+ */
+static sm_info_s sm_tail_info( st_size_t slot_cnt, st_size_t block_size, st_size_t slot_size )
 {
     sm_info_s info;
 
@@ -424,7 +379,6 @@ static sm_info_s sm_tail_info( st_size_t slot_cnt,
         info.header_size = ( header_slots * slot_size );
         slot_cnt = ( block_size - info.header_size ) / slot_size;
         info.slot_area = slot_cnt * slot_size;
-
     }
 
     return info;
@@ -463,10 +417,6 @@ static st_none sm_new_seg( sm_t sm )
     st_size_t slot_cnt;
     sm_tail_t new_seg;
 
-//     st_size_t header_size;
-//     st_size_t slot_area;
-//     sm_host_info( 0, block_size, slot_size, &header_size, &slot_area );
-
     sm_info_s info;
     info = sm_tail_info( sm->slot_cnt, sm->block_size, sm->slot_size );
 
@@ -480,8 +430,6 @@ static st_none sm_new_seg( sm_t sm )
         new_seg->base = (st_t)new_seg + info.header_size;
     }
 
-    //     new_seg = st_alloc( ( slot_cnt * sm->slot_size ) + sizeof( sm_tail_s ) );
-    //     new_seg->base = (st_t)new_seg + sizeof( sm_tail_s );
     new_seg->tail_cnt = slot_cnt;
     new_seg->init_cnt = 0;
     new_seg->next = NULL;
@@ -498,6 +446,7 @@ static st_none sm_new_seg( sm_t sm )
  * Initialize Segman host structure.
  *
  * @param sm         Segman.
+ * @param slot_mem   Slot memory.
  * @param slot_cnt   Slot count.
  * @param block_size Fixed block size (in bytes).
  * @param slot_size  Slot size (in bytes).
@@ -518,7 +467,6 @@ static st_none sm_init_host( sm_t      sm,
     sm->used_cnt = 0;
     sm->free_cnt = slot_cnt;
 
-    //     sm->head = (st_t)sm + sizeof( sm_s );
     sm->head = slot_mem;
     sm->tail = &( sm->host );
 
@@ -534,46 +482,3 @@ static st_none sm_init_host( sm_t      sm,
     sm->put_cb = NULL;
 #endif
 }
-
-
-// /**
-//  * Calculate the location of host head.
-//  *
-//  * NOTE: Segman must have "block_size" and "slot_size" defined.
-//  *
-//  * @param sm         Segman.
-//  *
-//  * @return Head location.
-//  */
-// static st_t sm_host_head( sm_t sm )
-// {
-//     if ( sm->block_size == 0 ) {
-//         return ( sm + sm_host_size() );
-//     } else {
-//         return;
-//     }
-//
-//     //     st_size_t host_extra;
-//     //
-//     //     host_extra = sm_host_size() - sm_tail_size();
-//     //     return host_extra / slot_size + ( ( host_extra % slot_size == 0 ) ? 0 : 1 );
-// }
-
-
-#if 0
-/**
- * Calculate the slot count of host. Note that some slots are
- * overwritten by host specific data.
- *
- * @param slot_size Slot size.
- *
- * @return Extra size.
- */
-static st_size_t sm_host_extra( st_size_t slot_size )
-{
-    st_size_t host_extra;
-
-    host_extra = sm_host_size() - sm_tail_size();
-    return host_extra / slot_size + ( ( host_extra % slot_size == 0 ) ? 0 : 1 );
-}
-#endif

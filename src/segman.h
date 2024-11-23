@@ -67,12 +67,21 @@ st_struct_body( sm )
 sm_t sm_new( st_size_t slot_cnt, st_size_t slot_size );
 
 
+/**
+ * Create Segman in Block mode.
+ *
+ * @param block_size  Segment block size.
+ * @param slot_size   Memory slot size.
+ *
+ * @return Segman.
+ */
 sm_t sm_new_block( st_size_t block_size, st_size_t slot_size );
 
 
 /**
  * Initialize pre-allocated memory with Segman.
  *
+ * @param sm        Segman.
  * @param mem       Memory.
  * @param slot_cnt  Slot count.
  * @param slot_size Slot size.
@@ -82,20 +91,16 @@ sm_t sm_new_block( st_size_t block_size, st_size_t slot_size );
 st_none sm_use( sm_t sm, st_t mem, st_size_t slot_cnt, st_size_t slot_size );
 
 
-sm_t sm_use_block( st_t mem, st_size_t block_size, st_size_t slot_size );
-
-
 /**
- * Create Segman in pre-allocated memory and fill pre-allocated
- * memory with maximum number of slots.
+ * Create Segman in Block mode.
  *
- * @param mem       Segman memory.
- * @param mem_size  Memory size.
- * @param slot_size Slot size.
+ * @param mem         Memory.
+ * @param block_size  Segment block size.
+ * @param slot_size   Memory slot size.
  *
- * @return Slot count.
+ * @return Segman.
  */
-st_size_t sm_fill( sm_t sm, st_t mem, st_size_t mem_size, st_size_t slot_size );
+sm_t sm_use_block( st_t mem, st_size_t block_size, st_size_t slot_size );
 
 
 /**
@@ -134,28 +139,6 @@ sm_t sm_del( sm_t sm );
 st_size_t sm_set_resize_factor( sm_t sm, st_size_t factor );
 
 
-#if 0
-/**
- * Return Segment Slot count in Host.
- *
- * @param sm Segman.
- *
- * @return Count.
- */
-st_size_t sm_host_slot_cnt( sm_t sm );
-
-
-/**
- * Return Segment Slot count in Tail.
- *
- * @param sm Segman.
- *
- * @return Count.
- */
-st_size_t sm_tail_slot_cnt( sm_t sm );
-#endif
-
-
 /**
  * Return Head Segment allocation size for Block.
  *
@@ -168,17 +151,6 @@ st_size_t sm_block_head_segment_size( st_size_t slot_cnt, st_size_t slot_size );
 
 
 /**
- * Return Tail Segment allocation size for Block.
- *
- * @param slot_cnt   Planned slot count.
- * @param slot_size  Slot size.
- *
- * @return Size.
- */
-// st_size_t sm_block_tail_segment_size( st_size_t slot_cnt, st_size_t slot_size );
-
-
-/**
  * Return Slot size.
  *
  * @param sm Segman.
@@ -186,16 +158,6 @@ st_size_t sm_block_head_segment_size( st_size_t slot_cnt, st_size_t slot_size );
  * @return Size.
  */
 st_size_t sm_slot_size( sm_t sm );
-
-
-/**
- * Return Slot area size.
- *
- * @param sm Segman.
- *
- * @return Size.
- */
-// st_size_t sm_slot_area_size( sm_t sm );
 
 
 /**
