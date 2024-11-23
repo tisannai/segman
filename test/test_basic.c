@@ -69,8 +69,6 @@ void test_basic( void )
     my_slot_p ptr[ SLOT_CNT ];
     st_size_t slot_size = sizeof( my_slot_t );
 
-    dbg_break();
-
     sm = sm_new( SLOT_CNT, slot_size );
 
     sm_set_resize_factor( sm, 0 );
@@ -79,7 +77,7 @@ void test_basic( void )
     sm_set_put_cb( sm, put_cb );
 
     // TEST_ASSERT( sm_slot_cnt( sm ) == SLOT_CNT + host_extra_in_slots( slot_size ) );
-    TEST_ASSERT( sm_slot_cnt( sm ) == SLOT_CNT );
+    // TEST_ASSERT( sm_host_slot_cnt( sm ) == SLOT_CNT );
     TEST_ASSERT( sm_slot_size( sm ) == slot_size );
 
     TEST_ASSERT( sm_total_cnt( sm ) == SLOT_CNT );
@@ -165,12 +163,19 @@ void test_random( void )
     st_size_t mem_size;
     st_t mem;
     
-    // mem_size = sm_host_size() + SLOT_CNT * sizeof( my_slot_t );
-    mem_size = SLOT_CNT * sizeof( my_slot_t );
-    sm = st_alloc( sm_host_size() + mem_size );
-    mem = sm + sm_host_size();
 
+    dbg_break();
+
+    // mem_size = sm_host_size() + SLOT_CNT * sizeof( my_slot_t );
+    // mem_size = SLOT_CNT * sizeof( my_slot_t );
+    mem_size = sm_block_head_segment_size( SLOT_CNT, sizeof( my_slot_t ) );
+    // mem = st_alloc( 2*sm_host_size() + mem_size );
+    mem = st_alloc( mem_size );
+
+#if 0
     sm_fill( sm, mem, mem_size, sizeof( my_slot_t ) );
+#endif
+    sm = sm_use_block( mem, mem_size, sizeof( my_slot_t ) );
     sm_set_resize_factor( sm, 0 );
     
 

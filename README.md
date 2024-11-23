@@ -4,15 +4,29 @@
 
 Segman is a memory pooler for fixed size Slots. When Segman is
 created, the user specifies size of the used Slot and the number of
-Slots that exist initially. Segman is able grow by itself when there
-are no free Slots available, but it can be configured to be limited as
-well.
+Slots or the Block size that exist initially. Segman is able grow by
+itself when there are no free Slots available, but it can be
+configured to be limited as well.
 
 Segman consists of one or more Segments. Segment contains a header and
 a collection of Slots. The first Segment in Segman is called Host and
 the rest are called Tail Segments. The header in Host is somewhat
 bigger than the header of a Tail Segment. In fact Tail header is
 contained within Host header.
+
+For Host, the slot area is before the header. This allows the header
+to be disconnected from the slot area. When slot area is freed, the
+header gets freed automatically, if it was allocated with the slots.
+User is must keep track of how the header was allocated.
+
+For Tail, the header comes always first. This ensures that we know
+where header is located.
+
+If Block size is used, the number of slots is subject to conditions.
+For both Head and Tail, the Block size is respected. Header takes the
+size of slot size multiples. When using Block size, the user is able
+to control the alignment of the slots.
+
 
 Segman is created with:
 
@@ -32,11 +46,10 @@ and it can be released with:
 
 If current Segment has no available Slots, either `NULL` is returned
 or a new Segment is allocated. Segman growth is defined by `resize`
-factor. `resize` factor is a percentage to use for growth. `100`
-(i.e. 100%) means that the newly allocated Tail Segment will have the
-same amount of Slots as the nominal Slot count for Segment. Note that
-nominal Slot count is somewhat smaller for the Host Segment than for
-the Tail Segments. `50` means that half of the nominal Slots are
+factor, when Block size is not in use. `resize` factor is a percentage
+to use for growth. `100` (i.e. 100%) means that the newly allocated
+Tail Segment will have the same amount of Slots as the nominal Slot
+count for Segments. `50` means that half of the nominal Slots are
 provided. Nominal Slot count is given:
 
     slots_per_tail_segment = sm_slot_cnt( sm );
@@ -97,7 +110,7 @@ Segman allows user hooks for `get` and `put` events. If Segman is
 compiled with `SEGMAN_USE_HOOKS` option, the hooks are active.
 
 If custom memory management is preferred, the Segman can be configured
-to use user allocation and de-allocation functions. 
+to use user allocation and de-allocation functions.
 
 See Doxygen docs and `segman.h` for details about Segman API. Also
 consult the test directory for usage examples.
