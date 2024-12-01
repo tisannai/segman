@@ -177,7 +177,7 @@ st_size_t sm_slot_size( sm_t sm );
  *
  * @return Count.
  */
-st_size_t sm_total_cnt( sm_t sm );
+st_size_t sm_total_count( sm_t sm );
 
 
 /**
@@ -187,7 +187,7 @@ st_size_t sm_total_cnt( sm_t sm );
  *
  * @return Count.
  */
-st_size_t sm_free_cnt( sm_t sm );
+st_size_t sm_free_count( sm_t sm );
 
 
 /**
@@ -197,7 +197,7 @@ st_size_t sm_free_cnt( sm_t sm );
  *
  * @return Count.
  */
-st_size_t sm_used_cnt( sm_t sm );
+st_size_t sm_used_count( sm_t sm );
 
 
 /**

@@ -78,9 +78,9 @@ void test_basic( void )
 
     TEST_ASSERT( sm_slot_size( sm ) == slot_size );
 
-    TEST_ASSERT( sm_total_cnt( sm ) == SLOT_CNT );
-    TEST_ASSERT( sm_free_cnt( sm ) == SLOT_CNT );
-    TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+    TEST_ASSERT( sm_total_count( sm ) == SLOT_CNT );
+    TEST_ASSERT( sm_free_count( sm ) == SLOT_CNT );
+    TEST_ASSERT( sm_used_count( sm ) == 0 );
     TEST_ASSERT( sm_host_size() == sizeof( sm_s ) );
     TEST_ASSERT( sm_tail_size() == sizeof( sm_tail_s ) );
 
@@ -88,9 +88,9 @@ void test_basic( void )
     st_id_t i;
 
     for ( i = 0; i < SLOT_CNT; i++ ) {
-        TEST_ASSERT( sm_total_cnt( sm ) == SLOT_CNT );
-        TEST_ASSERT( sm_free_cnt( sm ) == ( SLOT_CNT - i ) );
-        TEST_ASSERT( sm_used_cnt( sm ) == i );
+        TEST_ASSERT( sm_total_count( sm ) == SLOT_CNT );
+        TEST_ASSERT( sm_free_count( sm ) == ( SLOT_CNT - i ) );
+        TEST_ASSERT( sm_used_count( sm ) == i );
         TEST_ASSERT( sm->tail->init_cnt == i );
         slot = sm_get( sm );
         ( (my_slot_p)slot )->id = i;
@@ -104,9 +104,9 @@ void test_basic( void )
     st_id_t map[ SLOT_CNT ] = { 1, 3, 0, 2 };
 
     for ( i = 0; i < SLOT_CNT - 1; i++ ) {
-        TEST_ASSERT( sm_total_cnt( sm ) == SLOT_CNT );
-        TEST_ASSERT( sm_free_cnt( sm ) == i );
-        TEST_ASSERT( sm_used_cnt( sm ) == ( SLOT_CNT - i ) );
+        TEST_ASSERT( sm_total_count( sm ) == SLOT_CNT );
+        TEST_ASSERT( sm_free_count( sm ) == i );
+        TEST_ASSERT( sm_used_count( sm ) == ( SLOT_CNT - i ) );
         sm_put( sm, ptr[ map[ i ] ] );
     }
 
@@ -121,9 +121,9 @@ void test_basic( void )
     TEST_ASSERT( sm->head == ptr[ 2 ] );
 
     for ( i = 0; i < SLOT_CNT; i++ ) {
-        TEST_ASSERT( sm_total_cnt( sm ) == SLOT_CNT );
-        TEST_ASSERT( sm_free_cnt( sm ) == ( SLOT_CNT - i ) );
-        TEST_ASSERT( sm_used_cnt( sm ) == i );
+        TEST_ASSERT( sm_total_count( sm ) == SLOT_CNT );
+        TEST_ASSERT( sm_free_count( sm ) == ( SLOT_CNT - i ) );
+        TEST_ASSERT( sm_used_count( sm ) == i );
         TEST_ASSERT( sm->tail->init_cnt == SLOT_CNT );
         slot = sm_get( sm );
         ( (my_slot_p)slot )->id = i;
@@ -131,20 +131,20 @@ void test_basic( void )
     }
 
     for ( i = 0; i < SLOT_CNT; i++ ) {
-        TEST_ASSERT( sm_total_cnt( sm ) == SLOT_CNT );
-        TEST_ASSERT( sm_free_cnt( sm ) == i );
-        TEST_ASSERT( sm_used_cnt( sm ) == ( SLOT_CNT - i ) );
+        TEST_ASSERT( sm_total_count( sm ) == SLOT_CNT );
+        TEST_ASSERT( sm_free_count( sm ) == i );
+        TEST_ASSERT( sm_used_count( sm ) == ( SLOT_CNT - i ) );
         sm_put( sm, ptr[ i ] );
     }
 
     TEST_ASSERT_EQUAL( 2 * SLOT_CNT + 1, get_cnt );
     TEST_ASSERT_EQUAL( 2 * SLOT_CNT, put_cnt );
 
-    TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+    TEST_ASSERT( sm_used_count( sm ) == 0 );
     slot = sm_get( sm );
-    TEST_ASSERT( sm_used_cnt( sm ) == 1 );
+    TEST_ASSERT( sm_used_count( sm ) == 1 );
     sm_reset( sm );
-    TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+    TEST_ASSERT( sm_used_count( sm ) == 0 );
 
     sm_del( sm );
 }
@@ -182,7 +182,7 @@ void test_random( void )
                 // printf( "Empty sat\n" );
                 TEST_ASSERT( ptr[ used ] == NULL );
             }
-            TEST_ASSERT( sm_used_cnt( sm ) == used );
+            TEST_ASSERT( sm_used_count( sm ) == used );
         } else {
             if ( used > 0 ) {
                 used--;
@@ -193,7 +193,7 @@ void test_random( void )
                 ret = sm_put( sm, ptr[ used ] );
                 TEST_ASSERT( ret == NULL );
             }
-            TEST_ASSERT( sm_used_cnt( sm ) == used );
+            TEST_ASSERT( sm_used_count( sm ) == used );
         }
 
         // printf( "Used: %ld\n", used );
@@ -217,17 +217,17 @@ void test_block( void )
 
     TEST_ASSERT( sm_slot_size( sm ) == slot_size );
 
-    TEST_ASSERT( sm_total_cnt( sm ) == slot_cnt );
-    TEST_ASSERT( sm_free_cnt( sm ) == slot_cnt );
-    TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+    TEST_ASSERT( sm_total_count( sm ) == slot_cnt );
+    TEST_ASSERT( sm_free_count( sm ) == slot_cnt );
+    TEST_ASSERT( sm_used_count( sm ) == 0 );
 
     st_t    slot;
     st_id_t i;
 
     for ( i = 0; i < slot_cnt; i++ ) {
-        TEST_ASSERT( sm_total_cnt( sm ) == slot_cnt );
-        TEST_ASSERT( sm_free_cnt( sm ) == ( slot_cnt - i ) );
-        TEST_ASSERT( sm_used_cnt( sm ) == i );
+        TEST_ASSERT( sm_total_count( sm ) == slot_cnt );
+        TEST_ASSERT( sm_free_count( sm ) == ( slot_cnt - i ) );
+        TEST_ASSERT( sm_used_count( sm ) == i );
         TEST_ASSERT( sm->tail->init_cnt == i );
         slot = sm_get( sm );
         ( (my_slot_p)slot )->id = i;
@@ -236,11 +236,11 @@ void test_block( void )
 
     slot = sm_get( sm );
     TEST_ASSERT( slot == NULL );
-    TEST_ASSERT( sm_used_cnt( sm ) == slot_cnt );
+    TEST_ASSERT( sm_used_count( sm ) == slot_cnt );
     sm_put( sm, ptr[ 2 ] );
-    TEST_ASSERT( sm_used_cnt( sm ) == slot_cnt - 1 );
+    TEST_ASSERT( sm_used_count( sm ) == slot_cnt - 1 );
     sm_reset( sm );
-    TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+    TEST_ASSERT( sm_used_count( sm ) == 0 );
 
     sm_del_tail( sm );
 }
@@ -268,17 +268,17 @@ void test_large( void )
 
         TEST_ASSERT( sm_slot_size( sm ) == slot_size );
 
-        TEST_ASSERT( sm_total_cnt( sm ) == slot_cnt );
-        TEST_ASSERT( sm_free_cnt( sm ) == slot_cnt );
-        TEST_ASSERT( sm_used_cnt( sm ) == 0 );
+        TEST_ASSERT( sm_total_count( sm ) == slot_cnt );
+        TEST_ASSERT( sm_free_count( sm ) == slot_cnt );
+        TEST_ASSERT( sm_used_count( sm ) == 0 );
 
         st_t    slot;
         st_id_t i;
 
         for ( i = 0; i < slot_cnt; i++ ) {
-            TEST_ASSERT( sm_total_cnt( sm ) == slot_cnt );
-            TEST_ASSERT( sm_free_cnt( sm ) == ( slot_cnt - i ) );
-            TEST_ASSERT( sm_used_cnt( sm ) == i );
+            TEST_ASSERT( sm_total_count( sm ) == slot_cnt );
+            TEST_ASSERT( sm_free_count( sm ) == ( slot_cnt - i ) );
+            TEST_ASSERT( sm_used_count( sm ) == i );
             TEST_ASSERT( sm->tail->init_cnt == i );
             slot = sm_get( sm );
             ( (my_slot_p)slot )->id = i;
@@ -287,27 +287,27 @@ void test_large( void )
 
         slot = sm_get( sm );
         TEST_ASSERT( slot != NULL );
-        TEST_ASSERT( sm_used_cnt( sm ) == slot_cnt + 1 );
+        TEST_ASSERT( sm_used_count( sm ) == slot_cnt + 1 );
         sm_put( sm, ptr[ 2 ] );
-        TEST_ASSERT( sm_used_cnt( sm ) == slot_cnt );
+        TEST_ASSERT( sm_used_count( sm ) == slot_cnt );
         sm_reset( sm );
-        TEST_ASSERT( sm_used_cnt( sm ) == 0 );
-        TEST_ASSERT( sm_free_cnt( sm ) == slot_cnt );
+        TEST_ASSERT( sm_used_count( sm ) == 0 );
+        TEST_ASSERT( sm_free_count( sm ) == slot_cnt );
 
         for ( i = 0; i < 2 * slot_cnt; i++ ) {
             if ( i <= slot_cnt ) {
-                TEST_ASSERT( sm_total_cnt( sm ) == slot_cnt );
-                TEST_ASSERT( sm_free_cnt( sm ) == ( slot_cnt - i ) );
+                TEST_ASSERT( sm_total_count( sm ) == slot_cnt );
+                TEST_ASSERT( sm_free_count( sm ) == ( slot_cnt - i ) );
             } else {
-                TEST_ASSERT( sm_total_cnt( sm ) == 2 * slot_cnt );
-                TEST_ASSERT( sm_free_cnt( sm ) == ( 2 * slot_cnt - i ) );
+                TEST_ASSERT( sm_total_count( sm ) == 2 * slot_cnt );
+                TEST_ASSERT( sm_free_count( sm ) == ( 2 * slot_cnt - i ) );
             }
-            TEST_ASSERT( sm_used_cnt( sm ) == i );
+            TEST_ASSERT( sm_used_count( sm ) == i );
             slot = sm_get( sm );
         }
 
-        TEST_ASSERT( sm_used_cnt( sm ) == 2 * slot_cnt );
-        TEST_ASSERT( sm_free_cnt( sm ) == 0 );
+        TEST_ASSERT( sm_used_count( sm ) == 2 * slot_cnt );
+        TEST_ASSERT( sm_free_count( sm ) == 0 );
 
         sm_del_tail( sm );
 

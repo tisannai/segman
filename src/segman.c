@@ -96,7 +96,6 @@ sm_t sm_use_block( st_t mem, st_size_t block_size, size_t slot_size )
 sm_t sm_reset( sm_t sm )
 {
     sm_tail_t cur;
-    sm_tail_t next;
 
     cur = sm->host.next;
 
@@ -173,19 +172,19 @@ st_size_t sm_slot_size( sm_t sm )
 }
 
 
-st_size_t sm_total_cnt( sm_t sm )
+st_size_t sm_total_count( sm_t sm )
 {
     return sm->used_cnt + sm->free_cnt;
 }
 
 
-st_size_t sm_free_cnt( sm_t sm )
+st_size_t sm_free_count( sm_t sm )
 {
     return sm->free_cnt;
 }
 
 
-st_size_t sm_used_cnt( sm_t sm )
+st_size_t sm_used_count( sm_t sm )
 {
     return sm->used_cnt;
 }
@@ -307,6 +306,7 @@ void sm_set_put_cb( sm_t sm, sm_hook_fn cb )
 }
 
 #endif
+
 
 
 /* ------------------------------------------------------------
