@@ -161,7 +161,7 @@ void test_random( void )
     st_size_t mem_size;
     st_t      mem;
 
-    mem_size = sm_block_head_segment_size( SLOT_CNT, sizeof( my_slot_t ) );
+    mem_size = sm_head_segment_size_block( SLOT_CNT, sizeof( my_slot_t ) );
     mem = st_alloc( mem_size );
     sm = sm_use_block( mem, mem_size, sizeof( my_slot_t ) );
     sm_set_resize_factor( sm, 0 );

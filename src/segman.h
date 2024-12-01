@@ -150,6 +150,17 @@ st_size_t sm_set_resize_factor( sm_t sm, st_size_t factor );
 
 
 /**
+ * Return Head Segment allocation size (non Block).
+ *
+ * @param slot_cnt   Slot count.
+ * @param slot_size  Slot size.
+ *
+ * @return Size.
+ */
+st_size_t sm_head_segment_size( st_size_t slot_cnt, st_size_t slot_size );
+
+
+/**
  * Return Head Segment allocation size for Block.
  *
  * @param slot_cnt   Planned slot count.
@@ -157,7 +168,18 @@ st_size_t sm_set_resize_factor( sm_t sm, st_size_t factor );
  *
  * @return Size.
  */
-st_size_t sm_block_head_segment_size( st_size_t slot_cnt, st_size_t slot_size );
+st_size_t sm_head_segment_size_block( st_size_t slot_cnt, st_size_t slot_size );
+
+
+/**
+ * Return handle location for Segman.
+ *
+ * @param slot_cnt   Slot count.
+ * @param slot_size  Slot size.
+ *
+ * @return Offset.
+ */
+st_size_t sm_handle_offset( st_size_t slot_cnt, st_size_t slot_size );
 
 
 /**
@@ -181,16 +203,6 @@ st_size_t sm_total_count( sm_t sm );
 
 
 /**
- * Return number of available slots.
- *
- * @param sm Segman.
- *
- * @return Count.
- */
-st_size_t sm_free_count( sm_t sm );
-
-
-/**
  * Return number of used slots.
  *
  * @param sm Segman.
@@ -198,6 +210,16 @@ st_size_t sm_free_count( sm_t sm );
  * @return Count.
  */
 st_size_t sm_used_count( sm_t sm );
+
+
+/**
+ * Return number of available slots.
+ *
+ * @param sm Segman.
+ *
+ * @return Count.
+ */
+st_size_t sm_free_count( sm_t sm );
 
 
 /**

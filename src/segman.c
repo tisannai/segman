@@ -158,11 +158,23 @@ st_size_t sm_set_resize_factor( sm_t sm, st_size_t factor )
 }
 
 
-st_size_t sm_block_head_segment_size( st_size_t slot_cnt, st_size_t slot_size )
+st_size_t sm_head_segment_size( st_size_t slot_cnt, st_size_t slot_size )
+{
+    return ( slot_cnt * slot_size ) + sizeof( sm_s );
+}
+
+
+st_size_t sm_head_segment_size_block( st_size_t slot_cnt, st_size_t slot_size )
 {
     st_size_t header_slots;
     header_slots = sm_size_in_units( sizeof( sm_s ), slot_size );
     return ( header_slots + slot_cnt ) * slot_size;
+}
+
+
+st_size_t sm_handle_offset( st_size_t slot_cnt, st_size_t slot_size )
+{
+    return slot_cnt * slot_size;
 }
 
 
@@ -178,15 +190,15 @@ st_size_t sm_total_count( sm_t sm )
 }
 
 
-st_size_t sm_free_count( sm_t sm )
-{
-    return sm->free_cnt;
-}
-
-
 st_size_t sm_used_count( sm_t sm )
 {
     return sm->used_cnt;
+}
+
+
+st_size_t sm_free_count( sm_t sm )
+{
+    return sm->free_cnt;
 }
 
 
