@@ -83,6 +83,8 @@ void test_basic( void )
     TEST_ASSERT( sm_used_count( sm ) == 0 );
     TEST_ASSERT( sm_host_size() == sizeof( sm_s ) );
     TEST_ASSERT( sm_tail_size() == sizeof( sm_tail_s ) );
+    TEST_ASSERT( sm_head_segment_size( 100, 10 ) == ( 1000 + sizeof( sm_s ) ) );
+    TEST_ASSERT( sm_handle_offset( 100, 10 ) == 1000 );
 
     st_t    slot;
     st_id_t i;
